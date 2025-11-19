@@ -205,7 +205,7 @@ func (h *HandlerContext) GenerateKeyHandler(w http.ResponseWriter, r *http.Reque
 		}
 	} else {
 		// Try parsing as asymmetric algorithm
-		keyAlgorithm = types.ParseKeyAlgorithm(req.KeyType)
+		keyAlgorithm, _ = types.ParseKeyAlgorithm(req.KeyType)
 		if keyAlgorithm == x509.UnknownPublicKeyAlgorithm {
 			// Try as symmetric algorithm
 			symmetricAlgorithm = types.SymmetricAlgorithm(strings.ToLower(req.KeyType))
@@ -283,8 +283,9 @@ func (h *HandlerContext) GenerateKeyHandler(w http.ResponseWriter, r *http.Reque
 			if curve == "" {
 				curve = "P256" // Default ECDSA curve
 			}
+			parsedCurve, _ := types.ParseCurve(curve)
 			attrs.ECCAttributes = &types.ECCAttributes{
-				Curve: types.ParseCurve(curve),
+				Curve: parsedCurve,
 			}
 			privKey, err = ks.GenerateECDSA(attrs)
 
@@ -1975,8 +1976,9 @@ func buildKeyAttributes(keyID, keyType string, keySize int, curve, hash string, 
 		if curve == "" {
 			curve = "P256"
 		}
+		parsedCurve2, _ := types.ParseCurve(curve)
 		attrs.ECCAttributes = &types.ECCAttributes{
-			Curve: types.ParseCurve(curve),
+			Curve: parsedCurve2,
 		}
 	case "ed25519":
 		attrs.KeyAlgorithm = x509.Ed25519

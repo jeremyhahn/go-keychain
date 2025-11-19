@@ -1423,8 +1423,8 @@ func buildKeyAttributes(keyID, keyType string, keySize int, curve string) (*type
 		}
 
 	case x509.ECDSA:
-		parsedCurve := types.ParseCurve(curve)
-		if parsedCurve == nil {
+		parsedCurve, err := types.ParseCurve(curve)
+		if err != nil {
 			return nil, fmt.Errorf("invalid curve: %s", curve)
 		}
 		attrs.ECCAttributes = &types.ECCAttributes{
@@ -1451,8 +1451,8 @@ func buildKeyAttributesFromFlags(keyID, keyType, keyAlgorithm string, keySize in
 		return nil, fmt.Errorf("invalid key type: %s", keyType)
 	}
 
-	ka := types.ParseKeyAlgorithm(keyAlgorithm)
-	if ka == x509.UnknownPublicKeyAlgorithm {
+	ka, err := types.ParseKeyAlgorithm(keyAlgorithm)
+	if err != nil {
 		return nil, fmt.Errorf("invalid key algorithm: %s", keyAlgorithm)
 	}
 
@@ -1475,8 +1475,8 @@ func buildKeyAttributesFromFlags(keyID, keyType, keyAlgorithm string, keySize in
 		}
 
 	case x509.ECDSA:
-		parsedCurve := types.ParseCurve(curve)
-		if parsedCurve == nil {
+		parsedCurve, err := types.ParseCurve(curve)
+		if err != nil {
 			return nil, fmt.Errorf("invalid curve: %s", curve)
 		}
 		attrs.ECCAttributes = &types.ECCAttributes{

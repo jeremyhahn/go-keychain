@@ -63,13 +63,15 @@ func createRSAAttrs(cn string, keySize int) *types.KeyAttributes {
 
 // createECDSAAttrs creates ECDSA key attributes
 func createECDSAAttrs(cn, curve string) *types.KeyAttributes {
+	parsedCurve, _ := types.ParseCurve(curve)
+	// Note: parsedCurve may be nil for invalid curves - tests should handle this
 	return &types.KeyAttributes{
 		CN:           cn,
 		KeyType:      backend.KEY_TYPE_TLS,
 		StoreType:    backend.STORE_SW,
 		KeyAlgorithm: x509.ECDSA,
 		ECCAttributes: &types.ECCAttributes{
-			Curve: types.ParseCurve(curve),
+			Curve: parsedCurve,
 		},
 	}
 }
