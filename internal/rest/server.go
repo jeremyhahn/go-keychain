@@ -123,11 +123,8 @@ func NewServer(cfg *Config) (*Server, error) {
 		}
 	}
 
-	// Create backend registry
-	backendRegistry := NewBackendRegistry(cfg.Backends, defaultBackend)
-
-	// Create handler context
-	handlers := NewHandlerContext(backendRegistry, cfg.Version)
+	// Create handler context (uses keychain facade)
+	handlers := NewHandlerContext(cfg.Version)
 
 	// Create server instance
 	server := &Server{

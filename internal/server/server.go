@@ -425,18 +425,8 @@ func (s *Server) startGRPC() {
 
 	s.grpcServer = grpc.NewServer()
 
-	// Create backend manager for gRPC
-	manager := grpcinternal.NewBackendRegistry()
-	for name, ks := range s.keystores {
-		if err := manager.Register(name, ks); err != nil {
-			s.logger.Error("Failed to register backend with gRPC manager",
-				slog.Any("error", err), "backend", name)
-			return
-		}
-	}
-
-	// Create and register gRPC service
-	service := grpcinternal.NewService(manager)
+	// Create and register gRPC service (uses keychain facade)
+	service := grpcinternal.NewService()
 	pb.RegisterKeystoreServiceServer(s.grpcServer, service)
 
 	s.logger.Info("gRPC services registered", "keystores", len(s.keystores))
@@ -516,13 +506,9 @@ func (s *Server) startMCP() {
 		Logger: s.logger.With("component", "mcp"),
 	})
 
-	// Create backend registry adapter for MCP
-	mcpRegistry := newKeystoreRegistry(s.keystores, string(s.config.Default))
-
 	mcpConfig := &mcp.Config{
-		Addr:            addr,
-		BackendRegistry: mcpRegistry,
-		Logger:          mcpLogger,
+		Addr:   addr,
+		Logger: mcpLogger,
 	}
 
 	var err error
@@ -733,14 +719,10 @@ func (s *Server) startQUIC() {
 		return
 	}
 
-	// Create backend registry adapter for QUIC
-	quicRegistry := newKeystoreRegistry(s.keystores, string(s.config.Default))
-
 	quicConfig := &quic.Config{
-		Addr:            addr,
-		BackendRegistry: quicRegistry,
-		TLSConfig:       tlsConfig,
-		Logger:          quicLogger,
+		Addr:      addr,
+		TLSConfig: tlsConfig,
+		Logger:    quicLogger,
 	}
 
 	s.quicServer, err = quic.NewServer(quicConfig)
