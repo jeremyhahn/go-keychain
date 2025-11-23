@@ -15,17 +15,43 @@
 
 package server
 
-// initTPM2Backend initializes the TPM2 backend if enabled in configuration
-func (s *Server) initTPM2Backend() error {
-	if s.config.Backends.TPM2 == nil || !s.config.Backends.TPM2.Enabled {
-		return nil
+import (
+	"fmt"
+
+	"github.com/jeremyhahn/go-keychain/pkg/types"
+)
+
+func createTPM2Backend(config BackendConfig) (types.Backend, error) {
+	// Extract configuration values
+	cn, _ := config.Config["cn"].(string)
+	if cn == "" {
+		cn = "keychain"
 	}
 
-	// Get device path for logging
-	devicePath := s.config.Backends.TPM2.DevicePath
-	if devicePath == "" {
-		devicePath = "/dev/tpmrm0"
+	device, _ := config.Config["device"].(string)
+	if device == "" {
+		device = "/dev/tpmrm0"
 	}
+
+	useSimulator, _ := config.Config["use_simulator"].(bool)
+	encryptSession, _ := config.Config["encrypt_session"].(bool)
+
+	srkHandle, ok := config.Config["srk_handle"].(uint32)
+	if !ok {
+		if srkHandleInt, ok := config.Config["srk_handle"].(int); ok {
+			srkHandle = uint32(srkHandleInt)
+		} else {
+			srkHandle = 0x81000001 // Default SRK handle
+		}
+	}
+
+	// Suppress unused variable warnings for config values
+	_ = cn
+	_ = device
+	_ = useSimulator
+	_ = encryptSession
+	_ = srkHandle
+	_ = config.Config["platform_policy"]
 
 	// TODO: TPM2 backend not yet fully integrated
 	// The following issues need to be resolved:
@@ -39,6 +65,5 @@ func (s *Server) initTPM2Backend() error {
 	// 3. TPM2.NewTPM2() panics with nil BlobStore/CertStore
 	//
 	// A proper pkg/backend/tpm2 wrapper should be created similar to awskms, azurekv, etc.
-	s.logger.Info("TPM2 backend not enabled (not yet integrated)", "backend", "tpm2", "device", devicePath)
-	return nil
+	return nil, fmt.Errorf("TPM2 backend not yet fully integrated - requires adapter for types.Backend interface")
 }
